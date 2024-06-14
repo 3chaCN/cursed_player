@@ -1,4 +1,4 @@
-Cursed Player is a lightweight player which handles youtube links
+Cursed Player is a lightweight player that handles youtube links
 
 Instructions to run
 --------------------------
