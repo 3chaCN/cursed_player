@@ -9,7 +9,11 @@ Instructions to run
 Commands
 --------------------------
 up/down : move into playlist
+
 'n' : add an url
+
 'd' : download selected url
+
 'p' : play selected url
+
 'q' : quit app
