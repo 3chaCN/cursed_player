@@ -119,7 +119,12 @@ class Window():
                     self.show_status("pid " + str(self.play_t_pid))
             if k == ord('s'):
                 if self.play_t is not None:
-                    os.kill(self.play_t_pid, signal.SIGTERM)
+                    try:
+                        os.kill(self.play_t_pid, signal.SIGTERM)
+                        #debug
+                        self.show_status("pid " + str(self.play_t_pid) + "killed")
+                    except:
+                        self.show_status("failed to kill pid " + str(self.play_t_pid))
             if k == ord('a'):
                 self.set_autodl()
             if k == ord('A'):
