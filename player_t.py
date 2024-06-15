@@ -1,5 +1,4 @@
 import yt_dlp
-import ffmpeg 
 import threading
 from threading import Thread
 import subprocess
