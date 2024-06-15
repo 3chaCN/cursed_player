@@ -16,4 +16,6 @@ up/down : move into playlist
 
 'p' : play selected url
 
+'a' : toggle auto-download
+
 'q' : quit app
