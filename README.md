@@ -4,7 +4,7 @@ Instructions to run
 --------------------------
 1) python3 -m venv .
 2) bin/pip install -r requirements.txt
-3) bin/python3 player.py
+3) bin/python3 player_t.py
 
 Commands
 --------------------------
