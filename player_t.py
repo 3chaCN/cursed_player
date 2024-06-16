@@ -15,9 +15,9 @@ import signal
 # if youtube url, use yt-dlp
 # if m3u or radio: ffplay (ffplay -nodisp -vn)
 
-# TODO: add play next setting, auto-download
-
-URLS = ['https://www.youtube.com/watch?v=se5NYYkuzoM']
+# TODO: add play next setting, auto-download, 
+# reload already presents media (cache system),
+# yt-dlp progress on statusbar      
 
 # media = {"name":"video_name","file":"filename","url":"www..."}
 
