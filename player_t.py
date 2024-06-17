@@ -2,6 +2,7 @@ import yt_dlp
 import threading
 from threading import Thread
 import subprocess
+from subprocess import PIPE
 import curses
 import sys
 from curses import panel
@@ -9,6 +10,7 @@ from curses import textpad
 from curses import wrapper
 import os
 import signal
+from io import StringIO
 
 #playlist = []
 
@@ -18,6 +20,10 @@ import signal
 # TODO: add play next setting, auto-download, 
 # reload already presents media (cache system),
 # yt-dlp progress on statusbar      
+# CTRL+C (cancel current action)
+# rewrite class Window(generic) for curses, Buffer(generic) for log
+# add downloaded file metadata (store media dict in file)
+# add config file (settings for ffplay, youtube-dl, display, ...)
 
 # media = {"name":"video_name","file":"filename","url":"www..."}
 
@@ -26,6 +32,17 @@ playlist = []
 # Main screen (attrs : title, subpanels-objects)
 # Panel
 # Textbox
+
+class Buffer():
+    def __init__(self):
+        self.buf = StringIO()
+    
+    def write(self, s):
+        self.buf.write(s)
+        self.buf.flush()
+
+    def read(self):
+        return self.buf.getvalue()
 
 class Window():
     def __init__(self, title=None, debug=None):
@@ -58,7 +75,7 @@ class Window():
 
         self.inputbox = None
         # threads to run
-        self.play_t = None
+        self.play_p = None
         self.pbox_t = threading.Thread(target=self.update_playlist())
         #status_t = Threading.Thread(target=self.show_status())
         self.pbox_t.start()
@@ -106,24 +123,23 @@ class Window():
             if k == ord('g'):
                 self.get_playlist_elem()
             if k == ord('p'):
-                if self.play_t is not None:
+                if self.play_p is not None:
                     # rewrite function
-                    os.kill(self.play_t_pid, signal.SIGTERM)
+                    self.play_p.kill()
                 else:
                     #self.play_l = threading.Lock()
-                    self.play_t_pid = None
-                    self.play_t = threading.Thread(target=self.play_media(), args=())
-                    self.play_t.start()
+                    self.play_media()
                     # debug
-                    self.show_status("pid " + str(self.play_t_pid))
+                    #self.show_status("pid " + str(self.play_t_data[0]))
+                    #self.show_status("playing : " + self.play_t_buf.getvalue())
             if k == ord('s'):
-                if self.play_t is not None:
+                if self.play_p is not None:
                     try:
-                        os.kill(self.play_t_pid, signal.SIGTERM)
+                        self.play_p.kill()
                         #debug
-                        self.show_status("pid " + str(self.play_t_pid) + "killed")
+                        self.show_status("pid " + str(self.play_p.pid) + " killed")
                     except:
-                        self.show_status("failed to kill pid " + str(self.play_t_pid))
+                        self.show_status("failed to kill pid " + str(self.play_p.pid))
             if k == ord('a'):
                 self.set_autodl()
             if k == ord('A'):
@@ -197,6 +213,7 @@ class Window():
         self.panelbox.refresh()
 
     def show_status(self, message):
+        #self.stdscr.addstr(int(self.x) - 2, 10, " "*self.y)
         self.stdscr.addstr(int(self.x) - 2, 10, message)
 
     def add_to_playlist(self, data):
@@ -223,7 +240,7 @@ class Window():
     def play_media(self):
         file = playlist[self.list_pos]['filename']
         self.stdscr.addstr(int(self.x) - 2, 10, file)
-        self.play_t_pid = Media.play_media(file)
+        self.play_p = Media.play_media(file)
 
 class Media(Thread):
     def  __init__(self, url):
@@ -237,8 +254,8 @@ class Media(Thread):
     def play_media(file):
         null = open('/dev/null', 'w')
         #todo : play length (stdout to buffer)
-        p = subprocess.Popen(["/usr/bin/ffplay", "-vn", "-nodisp", file], stdin=null, stdout=null, stderr=null)
-        return p.pid
+        p = subprocess.Popen(["/usr/bin/ffplay", "-vn", "-nodisp", "-hide_banner", file], stdout=null, stderr=null)
+        return p
 
     def get_metadata(self, d):
         if d['status'] == 'finished':
@@ -257,8 +274,8 @@ class Media(Thread):
             "progress_hooks":[self.get_metadata],
             'quiet': True
         }
-        #sys.stderr = None
-        
+
+        sys.stderr = None
         with yt_dlp.YoutubeDL(ydl_opts) as ydl:
                 ydl.download(self.url)
 
